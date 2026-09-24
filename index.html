@@ -1,2564 +1,1417 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- =========================
+     MRLEGEND LIVE MARKET
+========================= -->
 
-<title>Mrlegend | Web3 Crypto Hub</title>
+<section id="live-market" class="market-section">
 
-<meta name="description"
-content="Mrlegend Web3 Crypto Hub — live crypto markets, airdrops, MLG token and community.">
+  <div class="market-header">
+    <div>
+      <span class="market-label">LIVE MARKET</span>
+      <h2>Crypto Market</h2>
+      <p>Click any token to view price and market movement.</p>
+    </div>
 
-<meta name="theme-color" content="#07090d">
+    <div class="market-status">
+      <span class="status-dot"></span>
+      <span>LIVE</span>
+    </div>
+  </div>
+
+  <!-- Search -->
+  <div class="market-tools">
+    <input
+      type="text"
+      id="tokenSearch"
+      placeholder="Search BTC, ETH, SOL..."
+      autocomplete="off"
+    />
+  </div>
+
+  <!-- Token list -->
+  <div id="marketGrid" class="market-grid">
+
+    <div class="market-loading">
+      Loading live market...
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     TOKEN MODAL
+========================= -->
+
+<div id="tokenModal" class="token-modal">
+
+  <div class="token-modal-box">
+
+    <button id="closeTokenModal" class="close-modal">
+      ×
+    </button>
+
+    <div class="token-title">
+
+      <div id="modalTokenIcon" class="token-big-icon">
+        ₿
+      </div>
+
+      <div>
+        <h2 id="modalTokenName">Bitcoin</h2>
+        <span id="modalTokenSymbol">BTC</span>
+      </div>
+
+    </div>
+
+    <div class="modal-price">
+
+      <div id="modalTokenPrice">
+        $0.00
+      </div>
+
+      <div id="modalTokenChange">
+        0.00%
+      </div>
+
+    </div>
+
+    <div class="chart-period">
+      <span>7 Day Price Chart</span>
+      <span id="chartStatus">Loading...</span>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="tokenChart"></canvas>
+    </div>
+
+    <div class="token-info">
+
+      <div>
+        <span>24H HIGH</span>
+        <strong id="modalHigh">$0.00</strong>
+      </div>
+
+      <div>
+        <span>24H LOW</span>
+        <strong id="modalLow">$0.00</strong>
+      </div>
+
+      <div>
+        <span>MARKET CAP</span>
+        <strong id="modalMarketCap">$0</strong>
+      </div>
+
+      <div>
+        <span>24H VOLUME</span>
+        <strong id="modalVolume">$0</strong>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- =========================
+     DISCORD
+========================= -->
+
+<section class="discord-section">
+
+  <div class="discord-card">
+
+    <div class="discord-icon">
+      <i class="fab fa-discord"></i>
+    </div>
+
+    <div class="discord-content">
+
+      <span>JOIN OUR COMMUNITY</span>
+
+      <h2>Discord</h2>
+
+      <p>
+        Connect with us on Discord
+      </p>
+
+      <div class="discord-user">
+        @emon688
+      </div>
+
+    </div>
+
+    <button
+      class="discord-button"
+      id="discordButton"
+      type="button"
+    >
+      <i class="fab fa-discord"></i>
+      Copy Discord
+    </button>
+
+  </div>
+
+</section>
+
+
+<!-- =========================
+     CHART.JS
+========================= -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 
 <style>
 
-/* =========================================================
-   MRLEGEND WEB3 WEBSITE
-   SINGLE FILE VERSION
-   ========================================================= */
+/* =========================
+   MARKET
+========================= */
 
-:root{
-    --bg:#05070b;
-    --panel:#0b0f17;
-    --panel2:#101621;
-    --border:rgba(255,255,255,.09);
-
-    --text:#f4f7fb;
-    --muted:#8d99aa;
-
-    --purple:#8b5cf6;
-    --cyan:#22d3ee;
-    --green:#25e59b;
-    --red:#ff5d76;
-    --yellow:#f5c542;
-
-    --shadow:
-        0 20px 70px rgba(0,0,0,.35);
+.market-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 60px auto;
+  padding: 25px;
+  box-sizing: border-box;
 }
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
+.market-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 25px;
 }
 
-html{
-    scroll-behavior:smooth;
+.market-label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 800;
+  opacity: .7;
 }
 
-body{
-    font-family:
-        Inter,
-        ui-sans-serif,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-
-    color:var(--text);
-    background:
-        radial-gradient(
-            circle at 20% 10%,
-            rgba(139,92,246,.13),
-            transparent 28%
-        ),
-        radial-gradient(
-            circle at 80% 20%,
-            rgba(34,211,238,.08),
-            transparent 25%
-        ),
-        var(--bg);
-
-    min-height:100vh;
+.market-header h2 {
+  margin: 6px 0;
+  font-size: 34px;
 }
 
-/* Grid background */
-
-body:before{
-    content:"";
-    position:fixed;
-    inset:0;
-
-    background-image:
-        linear-gradient(
-            rgba(255,255,255,.025) 1px,
-            transparent 1px
-        ),
-        linear-gradient(
-            90deg,
-            rgba(255,255,255,.025) 1px,
-            transparent 1px
-        );
-
-    background-size:50px 50px;
-
-    mask-image:
-        linear-gradient(
-            to bottom,
-            black,
-            transparent 90%
-        );
-
-    pointer-events:none;
-    z-index:-1;
+.market-header p {
+  margin: 0;
+  opacity: .65;
 }
 
-a{
-    color:inherit;
-    text-decoration:none;
+.market-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 800;
 }
 
-button,
-input{
-    font:inherit;
+.status-dot {
+  width: 9px;
+  height: 9px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #22c55e;
 }
 
-/* =========================================================
-   NAVIGATION
-   ========================================================= */
 
-.navbar{
-    position:sticky;
-    top:0;
-    z-index:1000;
+/* SEARCH */
 
-    border-bottom:1px solid var(--border);
-
-    background:rgba(5,7,11,.82);
-
-    backdrop-filter:blur(20px);
+.market-tools {
+  margin-bottom: 25px;
 }
 
-.nav-inner{
-    max-width:1250px;
-    margin:auto;
-
-    height:76px;
-
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-
-    padding:0 22px;
+#tokenSearch {
+  width: 100%;
+  max-width: 500px;
+  padding: 15px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  color: inherit;
+  outline: none;
+  font-size: 15px;
+  box-sizing: border-box;
 }
 
-.logo{
-    display:flex;
-    align-items:center;
-    gap:12px;
-
-    font-weight:900;
-    letter-spacing:-.5px;
+#tokenSearch:focus {
+  border-color: #5865f2;
 }
 
-.logo-mark{
-    width:42px;
-    height:42px;
 
-    border-radius:14px;
+/* GRID */
 
-    display:grid;
-    place-items:center;
-
-    font-weight:900;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--purple),
-            var(--cyan)
-        );
-
-    box-shadow:
-        0 0 30px rgba(139,92,246,.3);
+.market-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
 }
 
-.logo-text{
-    font-size:20px;
+
+/* TOKEN CARD */
+
+.token-card {
+  position: relative;
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.09);
+  background: rgba(255,255,255,.045);
+  cursor: pointer;
+  transition:
+    transform .2s ease,
+    border-color .2s ease,
+    background .2s ease;
 }
 
-.nav-links{
-    display:flex;
-    gap:28px;
+.token-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(88,101,242,.6);
+  background: rgba(88,101,242,.08);
 }
 
-.nav-links a{
-    color:var(--muted);
-    font-size:14px;
-    font-weight:700;
-
-    transition:.2s;
+.token-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
-.nav-links a:hover{
-    color:white;
+.token-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.nav-button{
-    padding:11px 17px;
+.token-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
 
-    border-radius:12px;
+.token-name {
+  font-weight: 800;
+  font-size: 16px;
+}
 
-    background:linear-gradient(
-        135deg,
-        var(--purple),
-        #6d4aff
+.token-symbol {
+  font-size: 12px;
+  opacity: .55;
+  text-transform: uppercase;
+}
+
+.token-price {
+  font-size: 24px;
+  font-weight: 900;
+  margin-top: 18px;
+}
+
+.token-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.token-change {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.price-up {
+  color: #22c55e;
+}
+
+.price-down {
+  color: #ef4444;
+}
+
+.market-loading {
+  padding: 30px;
+  text-align: center;
+  opacity: .6;
+}
+
+
+/* =========================
+   MODAL
+========================= */
+
+.token-modal {
+  display: none;
+  position: fixed;
+  z-index: 99999;
+  inset: 0;
+  padding: 20px;
+  box-sizing: border-box;
+
+  background: rgba(0,0,0,.75);
+
+  align-items: center;
+  justify-content: center;
+}
+
+.token-modal.active {
+  display: flex;
+}
+
+.token-modal-box {
+  position: relative;
+
+  width: 100%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+
+  padding: 30px;
+
+  border-radius: 22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(25,25,35,.98),
+      rgba(10,10,15,.98)
     );
 
-    font-size:13px;
-    font-weight:800;
-
-    box-shadow:
-        0 10px 30px rgba(139,92,246,.25);
-}
-
-/* =========================================================
-   CONTAINER
-   ========================================================= */
-
-.container{
-    max-width:1250px;
-    margin:auto;
-    padding:0 22px;
-}
-
-/* =========================================================
-   HERO
-   ========================================================= */
-
-.hero{
-    min-height:650px;
-
-    display:grid;
-    grid-template-columns:
-        1.15fr
-        .85fr;
-
-    align-items:center;
-
-    gap:60px;
-
-    padding-top:70px;
-    padding-bottom:80px;
-}
-
-.badge{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-
-    padding:8px 13px;
-
-    border:1px solid var(--border);
-
-    background:rgba(255,255,255,.035);
-
-    border-radius:999px;
-
-    color:#cbd5e1;
-
-    font-size:12px;
-    font-weight:800;
-}
-
-.dot{
-    width:7px;
-    height:7px;
-
-    border-radius:50%;
-
-    background:var(--green);
-
-    box-shadow:
-        0 0 12px var(--green);
-}
-
-.hero h1{
-    margin-top:25px;
-
-    font-size:
-        clamp(
-            48px,
-            7vw,
-            92px
-        );
-
-    line-height:.95;
-
-    letter-spacing:-5px;
-
-    max-width:800px;
-}
-
-.gradient{
-    background:
-        linear-gradient(
-            90deg,
-            var(--purple),
-            var(--cyan)
-        );
-
-    -webkit-background-clip:text;
-    background-clip:text;
-
-    color:transparent;
-}
-
-.hero p{
-    margin-top:25px;
-
-    max-width:680px;
-
-    color:var(--muted);
-
-    font-size:18px;
-
-    line-height:1.7;
-}
-
-.hero-buttons{
-    display:flex;
-    flex-wrap:wrap;
-    gap:13px;
-
-    margin-top:32px;
-}
-
-.btn{
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:9px;
-
-    padding:14px 20px;
-
-    border-radius:13px;
-
-    border:1px solid var(--border);
-
-    cursor:pointer;
-
-    font-weight:800;
-    font-size:14px;
-
-    transition:.25s;
-}
-
-.btn:hover{
-    transform:translateY(-2px);
-}
-
-.btn-primary{
-    border:0;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--purple),
-            #6347ff
-        );
-
-    box-shadow:
-        0 12px 35px rgba(139,92,246,.25);
-}
-
-.btn-secondary{
-    background:rgba(255,255,255,.035);
-}
-
-/* =========================================================
-   PROFILE CARD
-   ========================================================= */
-
-.profile-card{
-    position:relative;
-
-    padding:30px;
-
-    border:1px solid var(--border);
-
-    border-radius:28px;
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(255,255,255,.055),
-            rgba(255,255,255,.018)
-        );
-
-    box-shadow:var(--shadow);
-
-    overflow:hidden;
-}
-
-.profile-card:before{
-    content:"";
-
-    position:absolute;
-
-    width:250px;
-    height:250px;
-
-    top:-120px;
-    right:-100px;
-
-    border-radius:50%;
-
-    background:
-        rgba(139,92,246,.22);
-
-    filter:blur(50px);
-}
-
-.avatar{
-    width:100px;
-    height:100px;
-
-    border-radius:28px;
-
-    display:grid;
-    place-items:center;
-
-    font-size:30px;
-    font-weight:900;
-
-    background:
-        linear-gradient(
-            135deg,
-            var(--purple),
-            var(--cyan)
-        );
-
-    box-shadow:
-        0 0 45px rgba(139,92,246,.3);
-}
-
-.profile-name{
-    margin-top:20px;
-
-    font-size:26px;
-    font-weight:900;
-}
-
-.verified{
-    color:var(--cyan);
-}
-
-.profile-role{
-    margin-top:5px;
-
-    color:var(--muted);
-}
-
-.profile-stats{
-    display:grid;
-    grid-template-columns:repeat(2,1fr);
-
-    gap:12px;
-
-    margin-top:25px;
-}
-
-.stat{
-    padding:15px;
-
-    border-radius:15px;
-
-    background:rgba(255,255,255,.035);
-
-    border:1px solid var(--border);
-}
-
-.stat strong{
-    display:block;
-    font-size:20px;
-}
-
-.stat span{
-    color:var(--muted);
-    font-size:11px;
-}
-
-/* =========================================================
-   SOCIAL
-   ========================================================= */
-
-.socials{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-
-    margin-top:25px;
-}
-
-.social{
-    padding:10px 14px;
-
-    border:1px solid var(--border);
-
-    border-radius:11px;
-
-    color:#cbd5e1;
-
-    background:rgba(255,255,255,.025);
-
-    font-size:12px;
-    font-weight:800;
-
-    transition:.2s;
-}
-
-.social:hover{
-    border-color:
-        rgba(139,92,246,.5);
-
-    transform:translateY(-2px);
-}
-
-/* =========================================================
-   SECTIONS
-   ========================================================= */
-
-section{
-    padding:80px 0;
-}
-
-.section-heading{
-    display:flex;
-    justify-content:space-between;
-    align-items:end;
-    gap:30px;
-
-    margin-bottom:30px;
-}
-
-.eyebrow{
-    color:var(--cyan);
-
-    font-size:12px;
-    font-weight:900;
-
-    text-transform:uppercase;
-
-    letter-spacing:2px;
-}
-
-.section-heading h2{
-    margin-top:10px;
-
-    font-size:
-        clamp(
-            32px,
-            5vw,
-            52px
-        );
-
-    letter-spacing:-2px;
-}
-
-.section-heading p{
-    max-width:550px;
-
-    color:var(--muted);
-
-    line-height:1.6;
-}
-
-/* =========================================================
-   FEATURE CARDS
-   ========================================================= */
-
-.cards{
-    display:grid;
-
-    grid-template-columns:
-        repeat(3,1fr);
-
-    gap:18px;
-}
-
-.card{
-    padding:25px;
-
-    border-radius:20px;
-
-    border:1px solid var(--border);
-
-    background:
-        rgba(255,255,255,.025);
-
-    transition:.3s;
-}
-
-.card:hover{
-    transform:translateY(-6px);
-
-    border-color:
-        rgba(139,92,246,.4);
-
-    box-shadow:
-        0 25px 50px rgba(0,0,0,.2);
-}
-
-.icon{
-    width:48px;
-    height:48px;
-
-    display:grid;
-    place-items:center;
-
-    border-radius:15px;
-
-    background:
-        rgba(139,92,246,.12);
-
-    font-size:21px;
-}
-
-.card h3{
-    margin-top:20px;
-
-    font-size:20px;
-}
-
-.card p{
-    margin-top:10px;
-
-    color:var(--muted);
-
-    line-height:1.6;
-
-    font-size:14px;
-}
-
-/* =========================================================
-   TOKEN
-   ========================================================= */
-
-.token{
-    display:grid;
-
-    grid-template-columns:
-        1fr 1fr;
-
-    gap:20px;
-}
-
-.token-main{
-    padding:35px;
+  border: 1px solid rgba(255,255,255,.12);
 
-    border-radius:25px;
-
-    border:1px solid var(--border);
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(139,92,246,.12),
-            rgba(34,211,238,.04)
-        );
-}
-
-.token-main h2{
-    font-size:40px;
-    letter-spacing:-2px;
-}
-
-.contract{
-    margin-top:22px;
-
-    padding:15px;
-
-    border-radius:13px;
-
-    border:1px solid var(--border);
-
-    background:rgba(0,0,0,.25);
-
-    font-family:monospace;
-
-    font-size:13px;
-
-    word-break:break-all;
-
-    color:#cbd5e1;
-}
-
-.token-info{
-    display:grid;
-
-    grid-template-columns:
-        repeat(2,1fr);
-
-    gap:12px;
-
-    margin-top:20px;
-}
-
-.info{
-    padding:15px;
-
-    border-radius:14px;
-
-    background:rgba(255,255,255,.035);
-
-    border:1px solid var(--border);
-}
-
-.info small{
-    display:block;
-
-    color:var(--muted);
-
-    margin-bottom:5px;
-}
-
-.info strong{
-    font-size:15px;
-}
-
-/* =========================================================
-   MARKET
-   ========================================================= */
-
-.market-box{
-    border:1px solid var(--border);
-
-    border-radius:22px;
-
-    overflow:hidden;
-
-    background:rgba(255,255,255,.02);
-}
-
-.market-top{
-    padding:20px;
-
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-
-    gap:20px;
-
-    border-bottom:1px solid var(--border);
-}
-
-.search{
-    width:300px;
-
-    padding:13px 16px;
-
-    border-radius:12px;
-
-    border:1px solid var(--border);
-
-    background:#090c12;
-
-    color:white;
-
-    outline:none;
-}
-
-.search:focus{
-    border-color:var(--purple);
-}
-
-.table-wrap{
-    overflow-x:auto;
-}
-
-table{
-    width:100%;
-
-    border-collapse:collapse;
-
-    min-width:800px;
-}
-
-th{
-    padding:16px 20px;
-
-    text-align:left;
-
-    color:#687588;
-
-    font-size:11px;
-
-    text-transform:uppercase;
-
-    letter-spacing:1px;
-}
-
-td{
-    padding:17px 20px;
-
-    border-top:1px solid var(--border);
-
-    font-size:14px;
-}
-
-.coin{
-    display:flex;
-    align-items:center;
-    gap:12px;
-}
-
-.coin img{
-    width:34px;
-    height:34px;
-
-    border-radius:50%;
-}
-
-.coin-name{
-    font-weight:800;
-}
-
-.coin-symbol{
-    color:var(--muted);
-
-    font-size:11px;
-
-    text-transform:uppercase;
-}
-
-.positive{
-    color:var(--green);
-    font-weight:800;
-}
-
-.negative{
-    color:var(--red);
-    font-weight:800;
-}
-
-.market-status{
-    color:var(--muted);
-
-    font-size:12px;
-}
-
-/* =========================================================
-   AIRDROPS
-   ========================================================= */
-
-.airdrop-controls{
-    display:flex;
-
-    flex-wrap:wrap;
-
-    gap:9px;
-
-    margin-bottom:20px;
+  box-shadow:
+    0 25px 80px rgba(0,0,0,.5);
 }
-
-.filter{
-    padding:10px 15px;
-
-    border-radius:10px;
 
-    border:1px solid var(--border);
+.close-modal {
+  position: absolute;
+  top: 15px;
+  right: 18px;
 
-    background:rgba(255,255,255,.025);
+  width: 38px;
+  height: 38px;
 
-    color:#aab5c5;
+  border: none;
+  border-radius: 50%;
 
-    cursor:pointer;
+  background: rgba(255,255,255,.08);
+  color: white;
 
-    font-size:12px;
-
-    font-weight:800;
-}
-
-.filter.active{
-    background:
-        var(--purple);
-
-    color:white;
-
-    border-color:var(--purple);
+  font-size: 25px;
+  cursor: pointer;
 }
 
-.airdrops{
-    display:grid;
-
-    grid-template-columns:
-        repeat(3,1fr);
-
-    gap:18px;
+.token-title {
+  display: flex;
+  align-items: center;
+  gap: 15px;
 }
 
-.airdrop{
-    position:relative;
+.token-big-icon {
+  width: 55px;
+  height: 55px;
 
-    padding:24px;
+  border-radius: 50%;
 
-    border-radius:20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    border:1px solid var(--border);
+  background: rgba(255,255,255,.08);
 
-    background:
-        rgba(255,255,255,.025);
+  font-size: 28px;
 }
-
-.airdrop-top{
-    display:flex;
 
-    justify-content:space-between;
-
-    align-items:start;
+.token-title h2 {
+  margin: 0;
+  font-size: 25px;
 }
-
-.airdrop-symbol{
-    width:48px;
-    height:48px;
-
-    display:grid;
-    place-items:center;
 
-    border-radius:14px;
-
-    background:
-        linear-gradient(
-            135deg,
-            rgba(139,92,246,.2),
-            rgba(34,211,238,.1)
-        );
-
-    font-weight:900;
+.token-title span {
+  opacity: .55;
+  font-size: 13px;
 }
-
-.status{
-    padding:6px 9px;
-
-    border-radius:8px;
-
-    font-size:10px;
 
-    font-weight:900;
-
-    text-transform:uppercase;
+.modal-price {
+  margin-top: 25px;
 }
-
-.status-active{
-    color:var(--green);
 
-    background:
-        rgba(37,229,155,.09);
+#modalTokenPrice {
+  font-size: 42px;
+  font-weight: 900;
 }
 
-.status-upcoming{
-    color:var(--yellow);
-
-    background:
-        rgba(245,197,66,.09);
+#modalTokenChange {
+  margin-top: 5px;
+  font-size: 16px;
+  font-weight: 800;
 }
 
-.status-watchlist{
-    color:var(--cyan);
+.chart-period {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  margin-bottom: 10px;
 
-    background:
-        rgba(34,211,238,.09);
+  font-size: 13px;
+  opacity: .7;
 }
 
-.airdrop h3{
-    margin-top:18px;
-
-    font-size:19px;
+.chart-container {
+  height: 300px;
+  width: 100%;
 }
-
-.airdrop p{
-    margin-top:9px;
 
-    color:var(--muted);
-
-    font-size:13px;
-
-    line-height:1.6;
+.chart-container canvas {
+  width: 100% !important;
+  height: 100% !important;
 }
 
-.tags{
-    display:flex;
+.token-info {
+  display: grid;
+  grid-template-columns:
+    repeat(2, 1fr);
 
-    flex-wrap:wrap;
+  gap: 12px;
 
-    gap:7px;
-
-    margin-top:15px;
+  margin-top: 25px;
 }
-
-.tag{
-    padding:6px 8px;
-
-    border-radius:7px;
 
-    background:rgba(255,255,255,.05);
+.token-info > div {
+  padding: 15px;
 
-    color:#aab5c5;
+  border-radius: 12px;
 
-    font-size:10px;
+  background: rgba(255,255,255,.05);
 }
 
-.airdrop-bottom{
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-    gap:10px;
-
-    margin-top:20px;
+.token-info span {
+  display: block;
+  font-size: 10px;
+  opacity: .5;
+  margin-bottom: 6px;
 }
 
-.deadline{
-    color:var(--muted);
-
-    font-size:11px;
+.token-info strong {
+  font-size: 14px;
 }
-
-.visit{
-    padding:10px 13px;
 
-    border-radius:10px;
 
-    background:
-        var(--purple);
+/* =========================
+   DISCORD
+========================= */
 
-    font-size:11px;
-
-    font-weight:900;
+.discord-section {
+  width: 100%;
+  max-width: 1200px;
+  margin: 50px auto;
+  padding: 25px;
+  box-sizing: border-box;
 }
-
-/* =========================================================
-   SAFETY
-   ========================================================= */
-
-.notice{
-    margin-top:20px;
-
-    padding:20px;
-
-    border-radius:17px;
 
-    border:1px solid
-        rgba(245,197,66,.18);
+.discord-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 
-    background:
-        rgba(245,197,66,.04);
+  padding: 25px;
 
-    color:#c7cfdb;
+  border-radius: 20px;
 
-    font-size:13px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(88,101,242,.18),
+      rgba(88,101,242,.05)
+    );
 
-    line-height:1.6;
+  border: 1px solid rgba(88,101,242,.25);
 }
 
-/* =========================================================
-   COMMUNITY
-   ========================================================= */
+.discord-icon {
+  width: 55px;
+  height: 55px;
 
-.community{
-    display:grid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
-    grid-template-columns:
-        repeat(3,1fr);
+  border-radius: 15px;
 
-    gap:18px;
-}
-
-.community-card{
-    padding:26px;
+  background: #5865f2;
 
-    border-radius:20px;
-
-    border:1px solid var(--border);
-
-    background:
-        rgba(255,255,255,.025);
+  font-size: 25px;
 }
 
-.community-card strong{
-    font-size:19px;
+.discord-content {
+  flex: 1;
 }
-
-.community-card p{
-    margin-top:8px;
 
-    color:var(--muted);
-
-    font-size:13px;
+.discord-content > span {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  opacity: .6;
 }
-
-.community-card a{
-    display:inline-block;
-
-    margin-top:18px;
-
-    color:var(--cyan);
-
-    font-size:12px;
 
-    font-weight:900;
+.discord-content h2 {
+  margin: 3px 0;
 }
 
-/* =========================================================
-   FOOTER
-   ========================================================= */
-
-footer{
-    margin-top:60px;
-
-    border-top:1px solid var(--border);
-
-    padding:35px 0;
-
-    color:var(--muted);
-
-    font-size:12px;
+.discord-content p {
+  margin: 0 0 6px;
+  opacity: .65;
 }
-
-.footer-inner{
-    display:flex;
 
-    justify-content:space-between;
-
-    gap:20px;
-
-    flex-wrap:wrap;
+.discord-user {
+  font-weight: 800;
 }
-
-/* =========================================================
-   TOAST
-   ========================================================= */
-
-.toast{
-    position:fixed;
-
-    bottom:25px;
-    left:50%;
-
-    transform:
-        translateX(-50%)
-        translateY(100px);
-
-    padding:13px 18px;
-
-    border-radius:12px;
-
-    background:#151b27;
-
-    border:1px solid var(--border);
 
-    box-shadow:var(--shadow);
+.discord-button {
+  border: none;
+  border-radius: 10px;
 
-    font-size:13px;
+  padding: 13px 18px;
 
-    font-weight:800;
+  background: #5865f2;
+  color: white;
 
-    opacity:0;
+  font-weight: 800;
 
-    transition:.3s;
+  cursor: pointer;
 
-    z-index:9999;
+  transition: .2s;
 }
 
-.toast.show{
-    transform:
-        translateX(-50%)
-        translateY(0);
-
-    opacity:1;
-}
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-@media(max-width:950px){
-
-    .hero{
-        grid-template-columns:1fr;
-
-        padding-top:45px;
-    }
-
-    .cards,
-    .airdrops,
-    .community{
-        grid-template-columns:
-            repeat(2,1fr);
-    }
-
-    .token{
-        grid-template-columns:1fr;
-    }
-
-    .nav-links{
-        display:none;
-    }
-
+.discord-button:hover {
+  transform: translateY(-2px);
 }
-
-@media(max-width:650px){
 
-    .nav-inner{
-        height:68px;
-    }
 
-    .nav-button{
-        display:none;
-    }
+/* MOBILE */
 
-    .hero h1{
-        font-size:52px;
+@media (max-width: 650px) {
 
-        letter-spacing:-3px;
-    }
+  .market-section {
+    padding: 15px;
+    margin: 35px auto;
+  }
 
-    .hero p{
-        font-size:15px;
-    }
+  .market-header {
+    align-items: flex-start;
+  }
 
-    .cards,
-    .airdrops,
-    .community{
-        grid-template-columns:1fr;
-    }
+  .market-header h2 {
+    font-size: 27px;
+  }
 
-    .section-heading{
-        display:block;
-    }
+  .token-modal {
+    padding: 10px;
+  }
 
-    .section-heading p{
-        margin-top:12px;
-    }
+  .token-modal-box {
+    padding: 22px;
+  }
 
-    .market-top{
-        display:block;
-    }
+  #modalTokenPrice {
+    font-size: 32px;
+  }
 
-    .search{
-        width:100%;
+  .chart-container {
+    height: 230px;
+  }
 
-        margin-top:15px;
-    }
+  .discord-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 
-    .token-info{
-        grid-template-columns:1fr;
-    }
+  .discord-button {
+    width: 100%;
+  }
 
 }
 
 </style>
-</head>
-
-<body>
-
-<!-- =====================================================
-     NAVBAR
-     ===================================================== -->
-
-<nav class="navbar">
-
-<div class="nav-inner">
-
-<a href="#" class="logo">
-
-<div class="logo-mark">
-ML
-</div>
-
-<div class="logo-text">
-MRLEGEND
-</div>
-
-</a>
-
-<div class="nav-links">
-
-<a href="#home">Home</a>
-
-<a href="#markets">Markets</a>
-
-<a href="#airdrops">Airdrops</a>
-
-<a href="#mlg">MLG</a>
-
-<a href="#community">Community</a>
-
-</div>
-
-<a
-class="nav-button"
-href="https://x.com/mrlegend420"
-target="_blank"
->
-Follow on X
-</a>
-
-</div>
-
-</nav>
-
-
-<main>
-
-<!-- =====================================================
-     HERO
-     ===================================================== -->
-
-<section id="home">
-
-<div class="container">
-
-<div class="hero">
-
-<div>
-
-<div class="badge">
-
-<span class="dot"></span>
-
-WEB3 • CRYPTO • AIRDROPS
-
-</div>
-
-<h1>
-
-Welcome to
-
-<span class="gradient">
-Mrlegend
-</span>
-
-Hub.
-
-</h1>
-
-<p>
-
-Your Web3 command center for live cryptocurrency
-markets, testnets, airdrops, community opportunities
-and the MLG token ecosystem.
-
-</p>
-
-<div class="hero-buttons">
-
-<a
-class="btn btn-primary"
-href="#markets"
->
-📊 Explore Markets
-</a>
-
-<a
-class="btn btn-secondary"
-href="#airdrops"
->
-🪂 Explore Airdrops
-</a>
-
-</div>
-
-<div class="socials">
-
-<a
-class="social"
-href="https://x.com/mrlegend420"
-target="_blank"
->
-𝕏 X / @mrlegend420
-</a>
-
-<a
-class="social"
-href="https://t.me/cryptoinformer34"
-target="_blank"
->
-✈ Telegram
-</a>
-
-<span class="social">
-Discord: emon688#2331
-</span>
-
-</div>
-
-</div>
-
-
-<div class="profile-card">
-
-<div class="avatar">
-ML
-</div>
-
-<div class="profile-name">
-Mrlegend <span class="verified">✓</span>
-</div>
-
-<div class="profile-role">
-Web3 Explorer • Crypto Community
-</div>
-
-<div class="profile-stats">
-
-<div class="stat">
-<strong>Web3</strong>
-<span>Focus</span>
-</div>
-
-<div class="stat">
-<strong>LIVE</strong>
-<span>Status</span>
-</div>
-
-<div class="stat">
-<strong>MLG</strong>
-<span>Token</span>
-</div>
-
-<div class="stat">
-<strong>TESTNET</strong>
-<span>Network</span>
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =====================================================
-     FEATURES
-     ===================================================== -->
-
-<section>
-
-<div class="container">
-
-<div class="section-heading">
-
-<div>
-
-<div class="eyebrow">
-The Hub
-</div>
-
-<h2>
-Everything Web3.
-</h2>
-
-</div>
-
-<p>
-One place for crypto market information,
-airdrops, testnets and the Mrlegend community.
-</p>
-
-</div>
-
-
-<div class="cards">
-
-<div class="card">
-
-<div class="icon">
-📊
-</div>
-
-<h3>
-Live Crypto Markets
-</h3>
-
-<p>
-Track the top cryptocurrencies with live
-prices, 24-hour changes, market cap and
-trading volume.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="icon">
-🪂
-</div>
-
-<h3>
-Airdrop Hub
-</h3>
-
-<p>
-Discover active campaigns, upcoming projects,
-testnets, quests and referral opportunities.
-</p>
-
-</div>
-
-
-<div class="card">
-
-<div class="icon">
-🪙
-</div>
-
-<h3>
-MLG Token
-</h3>
-
-<p>
-Explore the Mrlegend MLG token and quickly
-copy the contract address or open its token page.
-</p>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =====================================================
-     MLG
-     ===================================================== -->
-
-<section id="mlg">
-
-<div class="container">
-
-<div class="section-heading">
-
-<div>
-
-<div class="eyebrow">
-Mrlegend Token
-</div>
-
-<h2>
-$MLG
-</h2>
-
-</div>
-
-<p>
-Mrlegend community token on the Vibe Vibe
-testnet ecosystem.
-</p>
-
-</div>
-
-
-<div class="token">
-
-<div class="token-main">
-
-<h2>
-MLG Token
-</h2>
-
-<p style="
-margin-top:12px;
-color:var(--muted);
-line-height:1.7;
-">
-
-Keep the contract address accessible,
-verify the network before interacting,
-and never sign unknown transactions.
-
-</p>
-
-
-<div class="contract" id="contract">
-
-0x2f8EF4a7Bc37cBd49d747e18e330aD757Dc66411
-
-</div>
-
-
-<div class="hero-buttons">
-
-<button
-class="btn btn-primary"
-onclick="copyContract()"
->
-📋 Copy Contract
-</button>
-
-<a
-class="btn btn-secondary"
-href="https://testnet.vibevibe.fun/token/0x2f8EF4a7Bc37cBd49d747e18e330aD757Dc66411"
-target="_blank"
->
-Open MLG Page ↗
-</a>
-
-</div>
-
-</div>
-
-
-<div class="card">
-
-<h3>
-Token Information
-</h3>
-
-<div class="token-info">
-
-<div class="info">
-
-<small>
-Symbol
-</small>
-
-<strong>
-$MLG
-</strong>
-
-</div>
-
-<div class="info">
-
-<small>
-Network
-</small>
-
-<strong>
-Vibe Vibe Testnet
-</strong>
-
-</div>
-
-<div class="info">
-
-<small>
-Type
-</small>
-
-<strong>
-Community Token
-</strong>
-
-</div>
-
-<div class="info">
-
-<small>
-Contract
-</small>
-
-<strong>
-Verified by you
-</strong>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =====================================================
-     MARKETS
-     ===================================================== -->
-
-<section id="markets">
-
-<div class="container">
-
-<div class="section-heading">
-
-<div>
-
-<div class="eyebrow">
-Live Data
-</div>
-
-<h2>
-Crypto Markets
-</h2>
-
-</div>
-
-<p>
-Live market information powered by the public
-CoinGecko API.
-</p>
-
-</div>
-
-
-<div class="market-box">
-
-<div class="market-top">
-
-<div>
-
-<strong>
-Top 50 Cryptocurrencies
-</strong>
-
-<div class="market-status" id="marketStatus">
-Loading market data...
-</div>
-
-</div>
-
-<input
-class="search"
-id="coinSearch"
-placeholder="Search Bitcoin, ETH, Solana..."
->
-
-</div>
-
-
-<div class="table-wrap">
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>#</th>
-
-<th>Asset</th>
-
-<th>Price</th>
-
-<th>24H</th>
-
-<th>Market Cap</th>
-
-<th>Volume</th>
-
-</tr>
-
-</thead>
-
-<tbody id="marketBody">
-
-<tr>
-
-<td colspan="6"
-style="
-text-align:center;
-padding:50px;
-color:#8d99aa;
-">
-
-Loading live crypto markets...
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =====================================================
-     AIRDROPS
-     ===================================================== -->
-
-<section id="airdrops">
-
-<div class="container">
-
-<div class="section-heading">
-
-<div>
-
-<div class="eyebrow">
-Opportunities
-</div>
-
-<h2>
-Airdrop Hub
-</h2>
-
-</div>
-
-<p>
-Campaign links and testnet opportunities.
-Always verify the official project before connecting
-your wallet.
-</p>
-
-</div>
-
-
-<div class="airdrop-controls">
-
-<button
-class="filter active"
-data-filter="all"
->
-All
-</button>
-
-<button
-class="filter"
-data-filter="active"
->
-Active
-</button>
-
-<button
-class="filter"
-data-filter="upcoming"
->
-Upcoming
-</button>
-
-<button
-class="filter"
-data-filter="watchlist"
->
-Watchlist
-</button>
-
-</div>
-
-
-<div class="airdrops" id="airdropGrid">
-</div>
-
-
-<div class="notice">
-
-<strong>
-⚠ Security Notice:
-</strong>
-
-Always verify the official domain before connecting
-a wallet or signing a transaction. Never share your
-seed phrase or private key. Airdrop campaigns can
-change their requirements, expire, or be fraudulent.
-
-</div>
-
-</div>
-
-</section>
-
-
-<!-- =====================================================
-     COMMUNITY
-     ===================================================== -->
-
-<section id="community">
-
-<div class="container">
-
-<div class="section-heading">
-
-<div>
-
-<div class="eyebrow">
-Community
-</div>
-
-<h2>
-Join Mrlegend.
-</h2>
-
-</div>
-
-<p>
-Follow the community and stay updated with
-Web3 opportunities.
-</p>
-
-</div>
-
-
-<div class="community">
-
-<div class="community-card">
-
-<strong>
-𝕏 X / Twitter
-</strong>
-
-<p>
-Follow Mrlegend for Web3 updates.
-</p>
-
-<a
-href="https://x.com/mrlegend420"
-target="_blank"
->
-Open X →
-</a>
-
-</div>
-
-
-<div class="community-card">
-
-<strong>
-✈ Telegram
-</strong>
-
-<p>
-Join the crypto information channel.
-</p>
-
-<a
-href="https://t.me/cryptoinformer34"
-target="_blank"
->
-Open Telegram →
-</a>
-
-</div>
-
-
-<div class="community-card">
-
-<strong>
-Discord
-</strong>
-
-<p>
-Community username: emon688#2331
-</p>
-
-<a href="#community">
-Discord Profile
-</a>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-</main>
-
-
-<!-- =====================================================
-     FOOTER
-     ===================================================== -->
-
-<footer>
-
-<div class="container">
-
-<div class="footer-inner">
-
-<div>
-© <span id="year"></span> Mrlegend.
-All rights reserved.
-</div>
-
-<div>
-Web3 • Crypto • Airdrops
-</div>
-
-</div>
-
-</div>
-
-</footer>
-
-
-<div class="toast" id="toast">
-Copied!
-</div>
 
 
 <script>
 
-/* =========================================================
-   BASIC
-   ========================================================= */
-
-document.getElementById("year").textContent =
-new Date().getFullYear();
+/* ==========================================
+   MRLEGEND CRYPTO MARKET
+========================================== */
 
 
-/* =========================================================
-   COPY CONTRACT
-   ========================================================= */
+/*
+  CoinGecko coin IDs
+*/
 
-function copyContract(){
+const marketTokens = [
 
-const contract =
-"0x2f8EF4a7Bc37cBd49d747e18e330aD757Dc66411";
+  {
+    id: "bitcoin",
+    name: "Bitcoin",
+    symbol: "BTC"
+  },
 
-navigator.clipboard.writeText(contract)
-.then(()=>{
+  {
+    id: "ethereum",
+    name: "Ethereum",
+    symbol: "ETH"
+  },
 
-showToast("MLG contract copied!");
+  {
+    id: "binancecoin",
+    name: "BNB",
+    symbol: "BNB"
+  },
 
-});
+  {
+    id: "solana",
+    name: "Solana",
+    symbol: "SOL"
+  },
 
-}
+  {
+    id: "ripple",
+    name: "XRP",
+    symbol: "XRP"
+  },
 
+  {
+    id: "dogecoin",
+    name: "Dogecoin",
+    symbol: "DOGE"
+  },
 
-/* =========================================================
-   TOAST
-   ========================================================= */
+  {
+    id: "cardano",
+    name: "Cardano",
+    symbol: "ADA"
+  },
 
-function showToast(message){
+  {
+    id: "avalanche-2",
+    name: "Avalanche",
+    symbol: "AVAX"
+  },
 
-const toast =
-document.getElementById("toast");
+  {
+    id: "chainlink",
+    name: "Chainlink",
+    symbol: "LINK"
+  },
 
-toast.textContent = message;
-
-toast.classList.add("show");
-
-setTimeout(()=>{
-
-toast.classList.remove("show");
-
-},1800);
-
-}
-
-
-/* =========================================================
-   AIRDROPS
-   ========================================================= */
-
-const airdrops = [
-
-{
-name:"Oshi Labs",
-symbol:"OSHI",
-status:"active",
-type:"Rewards",
-description:
-"Oshi Labs Studio rewards campaign. Check the official campaign page for current eligibility and tasks.",
-tags:["Connect X","Tasks","Points"],
-deadline:"TBA",
-link:"https://studio.oshi-labs.com/?ref=9004102c93f64ee3"
-},
-
-{
-name:"RunUp",
-symbol:"RUN",
-status:"active",
-type:"Whitelist",
-description:
-"RunUp whitelist campaign using the Mrlegend referral link.",
-tags:["Whitelist","Social","Referral"],
-deadline:"TBA",
-link:"https://runup.fun/whitelist?ref=Emon47940494"
-},
-
-{
-name:"Sweep Finance",
-symbol:"SWP",
-status:"active",
-type:"XP / Airdrop",
-description:
-"Sweep Finance campaign. Check the official website for current XP, referral and campaign requirements.",
-tags:["XP","Games","Referral"],
-deadline:"Ongoing",
-link:"https://sweep.finance/?referrer_code=XRW8V73K"
-},
-
-{
-name:"Vibe Vibe",
-symbol:"VIBE",
-status:"active",
-type:"Testnet",
-description:
-"Vibe Vibe testnet entry point for testnet activity and community participation.",
-tags:["Testnet","Community","Points"],
-deadline:"Ongoing",
-link:"http://testnet.vibevibe.fun"
-},
-
-{
-name:"MLG Token",
-symbol:"MLG",
-status:"watchlist",
-type:"Testnet Token",
-description:
-"Mrlegend community MLG token on the Vibe Vibe testnet.",
-tags:["Testnet","Token","Community"],
-deadline:"Ongoing",
-link:"https://testnet.vibevibe.fun/token/0x2f8EF4a7Bc37cBd49d747e18e330aD757Dc66411"
-},
-
-{
-name:"Next Airdrop",
-symbol:"NEW",
-status:"upcoming",
-type:"Upcoming",
-description:
-"Add your next verified airdrop campaign here.",
-tags:["Quest","Social","Testnet"],
-deadline:"TBA",
-link:"#"
-}
+  {
+    id: "polkadot",
+    name: "Polkadot",
+    symbol: "DOT"
+  }
 
 ];
 
 
-function renderAirdrops(filter="all"){
-
-const grid =
-document.getElementById("airdropGrid");
-
-let list =
-filter === "all"
-? airdrops
-: airdrops.filter(
-item => item.status === filter
-);
-
-grid.innerHTML =
-list.map(item => `
-
-<article class="airdrop">
-
-<div class="airdrop-top">
-
-<div class="airdrop-symbol">
-${item.symbol}
-</div>
-
-<div class="status status-${item.status}">
-${item.status}
-</div>
-
-</div>
-
-<h3>
-${item.name}
-</h3>
-
-<p>
-${item.description}
-</p>
-
-<div class="tags">
-
-${item.tags.map(tag => `
-<span class="tag">${tag}</span>
-`).join("")}
-
-</div>
-
-<div class="airdrop-bottom">
-
-<div class="deadline">
-Deadline: ${item.deadline}
-</div>
-
-<a
-class="visit"
-href="${item.link}"
-target="_blank"
-rel="noopener noreferrer"
->
-Visit ↗
-</a>
-
-</div>
-
-</article>
-
-`).join("");
-
-}
-
-
-document.querySelectorAll(".filter")
-.forEach(button=>{
-
-button.addEventListener("click",()=>{
-
-document
-.querySelectorAll(".filter")
-.forEach(b =>
-b.classList.remove("active")
-);
-
-button.classList.add("active");
-
-renderAirdrops(
-button.dataset.filter
-);
-
-});
-
-});
-
-
-renderAirdrops();
-
-
-/* =========================================================
-   COINGECKO MARKET
-   ========================================================= */
-
-const API =
-"https://api.coingecko.com/api/v3/coins/markets";
-
-
 let marketData = [];
 
+let currentToken = null;
 
-function money(value){
-
-if(value === null ||
-value === undefined){
-
-return "—";
-
-}
-
-if(value >= 1){
-
-return "$" +
-value.toLocaleString(
-"en-US",
-{
-maximumFractionDigits:2
-}
-);
-
-}
-
-return "$" +
-value.toLocaleString(
-"en-US",
-{
-maximumSignificantDigits:6
-}
-);
-
-}
+let tokenChart = null;
 
 
-function compact(value){
+/* ==========================================
+   FORMAT PRICE
+========================================== */
 
-if(!value){
+function formatPrice(price) {
 
-return "—";
+  if (price === null || price === undefined) {
+    return "$0.00";
+  }
 
-}
+  if (price >= 1000) {
 
-if(value >= 1e12){
+    return "$" + price.toLocaleString(
+      "en-US",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }
+    );
 
-return "$" +
-(value/1e12).toFixed(2)
-+ "T";
+  }
 
-}
+  if (price >= 1) {
 
-if(value >= 1e9){
+    return "$" + price.toLocaleString(
+      "en-US",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4
+      }
+    );
 
-return "$" +
-(value/1e9).toFixed(2)
-+ "B";
+  }
 
-}
-
-if(value >= 1e6){
-
-return "$" +
-(value/1e6).toFixed(2)
-+ "M";
-
-}
-
-if(value >= 1e3){
-
-return "$" +
-(value/1e3).toFixed(2)
-+ "K";
-
-}
-
-return "$" +
-value.toFixed(0);
+  return "$" + price.toLocaleString(
+    "en-US",
+    {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 8
+    }
+  );
 
 }
 
 
-async function loadMarket(){
+/* ==========================================
+   FORMAT LARGE NUMBER
+========================================== */
 
-const status =
-document.getElementById("marketStatus");
+function formatLargeNumber(number) {
 
-try{
+  if (!number) {
+    return "$0";
+  }
 
-status.textContent =
-"Updating live market data...";
+  if (number >= 1e12) {
+    return "$" + (number / 1e12).toFixed(2) + "T";
+  }
 
+  if (number >= 1e9) {
+    return "$" + (number / 1e9).toFixed(2) + "B";
+  }
 
-const url =
-API +
-"?vs_currency=usd" +
-"&order=market_cap_desc" +
-"&per_page=50" +
-"&page=1" +
-"&sparkline=false" +
-"&price_change_percentage=24h";
+  if (number >= 1e6) {
+    return "$" + (number / 1e6).toFixed(2) + "M";
+  }
 
+  if (number >= 1e3) {
+    return "$" + (number / 1e3).toFixed(2) + "K";
+  }
 
-const response =
-await fetch(url);
-
-
-if(!response.ok){
-
-throw new Error(
-"Market API error"
-);
+  return "$" + number.toLocaleString();
 
 }
 
 
-marketData =
-await response.json();
+/* ==========================================
+   LOAD MARKET
+========================================== */
 
+async function loadMarket() {
 
-renderMarket(
-document.getElementById("coinSearch").value
-);
+  const grid =
+    document.getElementById("marketGrid");
 
+  try {
 
-status.textContent =
-"Live • Updated " +
-new Date().toLocaleTimeString();
+    const ids = marketTokens
+      .map(token => token.id)
+      .join(",");
 
+    const url =
+      "https://api.coingecko.com/api/v3/coins/markets" +
+      "?vs_currency=usd" +
+      "&ids=" + ids +
+      "&order=market_cap_desc" +
+      "&per_page=50" +
+      "&page=1" +
+      "&sparkline=false" +
+      "&price_change_percentage=24h";
 
-}catch(error){
+    const response =
+      await fetch(url);
 
-console.error(error);
+    if (!response.ok) {
+      throw new Error("Market API error");
+    }
 
-status.textContent =
-"Unable to load market data. Try again later.";
+    const data =
+      await response.json();
 
-document.getElementById("marketBody")
-.innerHTML = `
+    marketData = data;
 
-<tr>
+    renderMarket(data);
 
-<td
-colspan="6"
-style="
-text-align:center;
-padding:50px;
-color:#ff5d76;
-"
->
+  }
 
-Market data temporarily unavailable.
+  catch (error) {
 
-</td>
+    console.error(error);
 
-</tr>
+    grid.innerHTML = `
 
-`;
+      <div class="market-loading">
 
-}
+        <p>
+          Unable to load live market.
+        </p>
 
-}
+        <button
+          onclick="loadMarket()"
+          style="
+            padding:10px 18px;
+            border:0;
+            border-radius:8px;
+            cursor:pointer;
+          "
+        >
+          Retry
+        </button>
 
+      </div>
 
-function renderMarket(search=""){
+    `;
 
-const body =
-document.getElementById("marketBody");
-
-
-const query =
-search.toLowerCase().trim();
-
-
-const filtered =
-marketData.filter(coin =>
-
-coin.name
-.toLowerCase()
-.includes(query)
-
-||
-
-coin.symbol
-.toLowerCase()
-.includes(query)
-
-);
-
-
-if(!filtered.length){
-
-body.innerHTML = `
-
-<tr>
-
-<td
-colspan="6"
-style="
-text-align:center;
-padding:40px;
-color:#8d99aa;
-"
->
-
-No coins found.
-
-</td>
-
-</tr>
-
-`;
-
-return;
+  }
 
 }
 
 
-body.innerHTML =
-filtered.map(coin=>{
+/* ==========================================
+   RENDER MARKET
+========================================== */
 
-const change =
-coin.price_change_percentage_24h;
+function renderMarket(data) {
 
+  const grid =
+    document.getElementById("marketGrid");
 
-const changeClass =
-change >= 0
-? "positive"
-: "negative";
+  if (!data.length) {
 
+    grid.innerHTML =
+      `<div class="market-loading">
+        No market data found.
+      </div>`;
 
-const sign =
-change >= 0
-? "+"
-: "";
+    return;
+  }
 
+  grid.innerHTML =
+    data.map(token => {
 
-return `
+      const change =
+        token.price_change_percentage_24h || 0;
 
-<tr>
+      const changeClass =
+        change >= 0
+          ? "price-up"
+          : "price-down";
 
-<td>
-${coin.market_cap_rank || "—"}
-</td>
+      const arrow =
+        change >= 0
+          ? "▲"
+          : "▼";
 
-<td>
+      return `
 
-<div class="coin">
+        <div
+          class="token-card"
+          data-name="${token.name.toLowerCase()}"
+          data-symbol="${token.symbol.toLowerCase()}"
+          onclick="openToken('${token.id}')"
+        >
 
-<img
-src="${coin.image}"
-alt="${coin.name}"
-loading="lazy"
->
+          <div class="token-card-top">
 
-<div>
+            <div class="token-left">
 
-<div class="coin-name">
-${coin.name}
-</div>
+              <img
+                class="token-icon"
+                src="${token.image}"
+                alt="${token.name}"
+                loading="lazy"
+              >
 
-<div class="coin-symbol">
-${coin.symbol}
-</div>
+              <div>
 
-</div>
+                <div class="token-name">
+                  ${token.name}
+                </div>
 
-</div>
+                <div class="token-symbol">
+                  ${token.symbol}
+                </div>
 
-</td>
+              </div>
 
-<td>
-<strong>
-${money(coin.current_price)}
-</strong>
-</td>
+            </div>
 
-<td class="${changeClass}">
-${sign}${change?.toFixed(2) ?? "—"}%
-</td>
+            <span class="${changeClass}">
+              ${arrow}
+            </span>
 
-<td>
-${compact(coin.market_cap)}
-</td>
+          </div>
 
-<td>
-${compact(coin.total_volume)}
-</td>
+          <div class="token-price">
+            ${formatPrice(token.current_price)}
+          </div>
 
-</tr>
+          <div class="token-bottom">
 
-`;
+            <span class="token-change ${changeClass}">
+              ${change >= 0 ? "+" : ""}
+              ${change.toFixed(2)}%
+            </span>
 
-}).join("");
+            <span style="opacity:.5;font-size:12px;">
+              24H
+            </span>
+
+          </div>
+
+        </div>
+
+      `;
+
+    }).join("");
 
 }
 
+
+/* ==========================================
+   OPEN TOKEN
+========================================== */
+
+async function openToken(tokenId) {
+
+  const token =
+    marketData.find(
+      item => item.id === tokenId
+    );
+
+  if (!token) return;
+
+  currentToken = token;
+
+  const modal =
+    document.getElementById("tokenModal");
+
+  modal.classList.add("active");
+
+  document.body.style.overflow = "hidden";
+
+
+  document.getElementById(
+    "modalTokenIcon"
+  ).innerHTML = `
+
+    <img
+      src="${token.image}"
+      style="
+        width:100%;
+        height:100%;
+        border-radius:50%;
+      "
+    >
+
+  `;
+
+
+  document.getElementById(
+    "modalTokenName"
+  ).textContent =
+    token.name;
+
+
+  document.getElementById(
+    "modalTokenSymbol"
+  ).textContent =
+    token.symbol.toUpperCase();
+
+
+  document.getElementById(
+    "modalTokenPrice"
+  ).textContent =
+    formatPrice(token.current_price);
+
+
+  const change =
+    token.price_change_percentage_24h || 0;
+
+
+  const changeElement =
+    document.getElementById(
+      "modalTokenChange"
+    );
+
+  changeElement.textContent =
+    `${change >= 0 ? "+" : ""}${change.toFixed(2)}% 24H`;
+
+
+  changeElement.className =
+    change >= 0
+      ? "price-up"
+      : "price-down";
+
+
+  document.getElementById(
+    "modalHigh"
+  ).textContent =
+    formatPrice(token.high_24h);
+
+
+  document.getElementById(
+    "modalLow"
+  ).textContent =
+    formatPrice(token.low_24h);
+
+
+  document.getElementById(
+    "modalMarketCap"
+  ).textContent =
+    formatLargeNumber(
+      token.market_cap
+    );
+
+
+  document.getElementById(
+    "modalVolume"
+  ).textContent =
+    formatLargeNumber(
+      token.total_volume
+    );
+
+
+  await loadTokenChart(token.id);
+
+}
+
+
+/* ==========================================
+   TOKEN CHART
+========================================== */
+
+async function loadTokenChart(tokenId) {
+
+  const status =
+    document.getElementById(
+      "chartStatus"
+    );
+
+  status.textContent =
+    "Loading...";
+
+
+  try {
+
+    const url =
+      `https://api.coingecko.com/api/v3/coins/${tokenId}/market_chart?vs_currency=usd&days=7&interval=daily`;
+
+    const response =
+      await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Chart API error");
+    }
+
+    const data =
+      await response.json();
+
+    const prices =
+      data.prices || [];
+
+
+    const labels =
+      prices.map(item => {
+
+        const date =
+          new Date(item[0]);
+
+        return date.toLocaleDateString(
+          "en-US",
+          {
+            month: "short",
+            day: "numeric"
+          }
+        );
+
+      });
+
+
+    const values =
+      prices.map(item => item[1]);
+
+
+    const ctx =
+      document
+        .getElementById("tokenChart")
+        .getContext("2d");
+
+
+    if (tokenChart) {
+      tokenChart.destroy();
+    }
+
+
+    tokenChart =
+      new Chart(ctx, {
+
+        type: "line",
+
+        data: {
+
+          labels: labels,
+
+          datasets: [
+
+            {
+              data: values,
+
+              borderWidth: 2,
+
+              pointRadius: 0,
+
+              tension: .35,
+
+              fill: true
+
+            }
+
+          ]
+
+        },
+
+        options: {
+
+          responsive: true,
+
+          maintainAspectRatio: false,
+
+          plugins: {
+
+            legend: {
+              display: false
+            }
+
+          },
+
+          scales: {
+
+            x: {
+              display: true,
+
+              grid: {
+                display: false
+              }
+            },
+
+            y: {
+
+              display: true,
+
+              grid: {
+                color:
+                  "rgba(255,255,255,.07)"
+              },
+
+              ticks: {
+
+                callback: function(value) {
+
+                  return "$" +
+                    Number(value)
+                      .toLocaleString();
+
+                }
+
+              }
+
+            }
+
+          }
+
+        }
+
+      });
+
+
+    status.textContent =
+      "Last 7 days";
+
+  }
+
+  catch (error) {
+
+    console.error(error);
+
+    status.textContent =
+      "Chart unavailable";
+
+  }
+
+}
+
+
+/* ==========================================
+   CLOSE MODAL
+========================================== */
 
 document
-.getElementById("coinSearch")
-.addEventListener(
-"input",
-event => {
+  .getElementById("closeTokenModal")
+  .addEventListener(
+    "click",
+    closeTokenModal
+  );
 
-renderMarket(
-event.target.value
+
+function closeTokenModal() {
+
+  document
+    .getElementById("tokenModal")
+    .classList.remove("active");
+
+  document.body.style.overflow = "";
+
+}
+
+
+/* CLOSE WHEN CLICK OUTSIDE */
+
+document
+  .getElementById("tokenModal")
+  .addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        event.target === this
+      ) {
+
+        closeTokenModal();
+
+      }
+
+    }
+  );
+
+
+/* ESCAPE KEY */
+
+document.addEventListener(
+  "keydown",
+  function(event) {
+
+    if (
+      event.key === "Escape"
+    ) {
+
+      closeTokenModal();
+
+    }
+
+  }
 );
 
-});
 
+/* ==========================================
+   SEARCH
+========================================== */
+
+document
+  .getElementById("tokenSearch")
+  .addEventListener(
+    "input",
+    function() {
+
+      const search =
+        this.value
+          .toLowerCase()
+          .trim();
+
+
+      document
+        .querySelectorAll(
+          ".token-card"
+        )
+        .forEach(card => {
+
+          const name =
+            card.dataset.name;
+
+          const symbol =
+            card.dataset.symbol;
+
+
+          if (
+            name.includes(search) ||
+            symbol.includes(search)
+          ) {
+
+            card.style.display =
+              "block";
+
+          }
+
+          else {
+
+            card.style.display =
+              "none";
+
+          }
+
+        });
+
+    }
+  );
+
+
+/* ==========================================
+   DISCORD @emon688
+========================================== */
+
+document
+  .getElementById("discordButton")
+  .addEventListener(
+    "click",
+    async function() {
+
+      const username =
+        "@emon688";
+
+      try {
+
+        await navigator.clipboard.writeText(
+          username
+        );
+
+        this.innerHTML =
+          '<i class="fab fa-discord"></i> Copied @emon688';
+
+        setTimeout(() => {
+
+          this.innerHTML =
+            '<i class="fab fa-discord"></i> Copy Discord';
+
+        }, 2000);
+
+      }
+
+      catch (error) {
+
+        alert(
+          "Discord username: @emon688"
+        );
+
+      }
+
+    }
+  );
+
+
+/* ==========================================
+   START
+========================================== */
 
 loadMarket();
 
 
-/*
-Refresh approximately every 60 seconds.
-The public API may apply rate limits.
-*/
+/* AUTO UPDATE EVERY 60 SECONDS */
 
 setInterval(
-loadMarket,
-60000
+  loadMarket,
+  60000
 );
 
 </script>
-
-</body>
-</html>
